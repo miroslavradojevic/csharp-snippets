@@ -10,7 +10,7 @@ namespace Chapter1
             for (int i = 0; i < 10; i++)
             {
                 Console.WriteLine("ThreadProc: {0}", i);
-                Thread.Sleep(0);
+                Thread.Sleep(0); // signal windows that this thread is finished, signal that it is possible to switch to another thread
             }
         }
         static void Main(string[] args)
@@ -26,6 +26,7 @@ namespace Chapter1
 
             t.Join();
 
+            Console.WriteLine("Press any key...");
             Console.ReadKey();
         }
     }
