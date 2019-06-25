@@ -15,8 +15,6 @@ namespace MsOwinDemo
 
         static void Main(string[] args)
         {
-            //string baseUrl = "http://localhost:8484";
-
             using (WebApp.Start<Startup>(baseUrl))
             {
                 Console.WriteLine("WebApi started at " + baseUrl);
@@ -33,8 +31,19 @@ namespace MsOwinDemo
                     if (ck.Equals(ConsoleKey.A))
                     {
                         GetTown().Wait();
-                        Console.SetCursorPosition(0, Console.WindowHeight - 4);
+                        
+                        
                     }
+                    else
+                    {
+                        Console.SetCursorPosition(0, Console.WindowHeight - 4);
+                        Console.WriteLine("Command not recognized");
+                    }
+
+                    Console.SetCursorPosition(0, Console.WindowHeight - 2);
+                    Console.ForegroundColor = ConsoleColor.Yellow;
+                    Console.WriteLine("Press ESC to quit.");
+                    Console.ResetColor();
 
                     //while (!Console.KeyAvailable) {}
 
@@ -45,6 +54,7 @@ namespace MsOwinDemo
         private static async Task GetTown()
         {
             string aa = await GetTownsStartWith("Amster");
+            Console.SetCursorPosition(0, Console.WindowHeight - 4);
             Console.WriteLine(aa);
         }
 
