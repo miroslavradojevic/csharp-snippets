@@ -1,0 +1,6 @@
+C:\Users\miros\source\csharp-snippets\UrlRetreive\bin\Debug\UrlRetreive.exe.config
+C:\Users\miros\source\csharp-snippets\UrlRetreive\bin\Debug\UrlRetreive.exe
+C:\Users\miros\source\csharp-snippets\UrlRetreive\bin\Debug\UrlRetreive.pdb
+C:\Users\miros\source\csharp-snippets\UrlRetreive\obj\Debug\UrlRetreive.csprojAssemblyReference.cache
+C:\Users\miros\source\csharp-snippets\UrlRetreive\obj\Debug\UrlRetreive.exe
+C:\Users\miros\source\csharp-snippets\UrlRetreive\obj\Debug\UrlRetreive.pdb
