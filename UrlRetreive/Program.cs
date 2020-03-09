@@ -11,9 +11,15 @@ namespace UrlRetreive
 {
     internal static class Program
     {
-        private const string url = "http://people.csail.mit.edu/brussell/research/LabelMe/Images/05june05_static_street_boston/p1010737.jpg";
+        private static int counter;
+        private const string http_prefix = @"http://";
+        private const string url = "http://people.csail.mit.edu/brussell/research/LabelMe/Images/05june05_static_street_boston/";
+        private static string[] image_ext = { ".jpg", ".jpeg" };
+        
+
+        // "http://people.csail.mit.edu/brussell/research/LabelMe/Images/05june05_static_street_boston/p1010737.jpg";
+        // http://people.csail.mit.edu/brussell/research/LabelMe/Images/05june05_static_street_boston/
         // http://people.csail.mit.edu/brussell/research/LabelMe/Images/
-        // Hints:
         // https://stackoverflow.com/questions/124492/c-sharp-httpwebrequest-command-to-get-directory-listing
         // https://stackoverflow.com/questions/307688/how-to-download-a-file-from-a-url-in-c
         // http://people.csail.mit.edu/brussell/research/LabelMe/Images/05june05_static_street_boston/p1010737.jpg
@@ -23,78 +29,161 @@ namespace UrlRetreive
 
         static void Main(string[] args)
         {
-            for (var input = args.FirstOrDefault(); input != "exit"; input = Console.ReadLine())
+            if (args != null && args.Length > 0)
             {
-                switch (input)
+                counter = 0;
+
+                switch (args[0])
                 {
-                    case "dir":
-                        var items = GetHyperlinks(url);
+                    case "--help":
+                        PrintHelp();
                         break;
-                    case "grab":
-                        Console.WriteLine("grab them!");
+                    case "--get":
+                        if (args.Length == 2) GetContents(args[1]);
+                        else PrintHelp();
                         break;
                     default:
-                        Console.WriteLine(@"Enter one of following arguments:");
-                        Console.WriteLine(@"dir: List directories");
-                        Console.WriteLine(@"grab: Download all files encountered in root directory");
-                        Console.WriteLine(@"exit: Exit application");
+                        PrintHelp();
                         break;
                 }
             }
-
-            //string[] names = { "Hartono ahahah", "Tommy", "Adams, Terry",
-            //"Andersen, Henriette Thaulow",
-            //"Hedlund, Magnus", "Ito, Shu" };
-            //string firstLongName = names.FirstOrDefault(name => name.Length > len);
-            //Console.WriteLine("Name longer than {0} characters: {1}", len, string.IsNullOrEmpty(firstLongName) ? "not found" : firstLongName);
+            else
+            {
+                PrintHelp();
+            }
 
             Console.WriteLine(string.Empty);
-            //Console.ReadKey();
 
         }
 
-        private static object GetHyperlinks(string url)
+        private static void CheckUrl(string url)
         {
-            //url = url + "test";
+            if (!url.StartsWith(http_prefix))
+            {
+                Console.WriteLine("URL is not valid");
+                return;
+            }
+        }
 
-            var hyperlinkList = new List<string>();
+        private static void PrintHelp()
+        {
+            Console.WriteLine(@"Usage:");
+            Console.WriteLine(@"UrlRetreive --get url");
+            Console.WriteLine(@"UrlRetreive --help");
+        }
+
+        private static void GetContents(string url)
+        {
+            Console.WriteLine("\n" + url);
 
             HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
 
-            using (HttpWebResponse response = (HttpWebResponse)request.GetResponse())
+            try
             {
-                using (StreamReader reader = new StreamReader(response.GetResponseStream()))
+                using (HttpWebResponse response = (HttpWebResponse)request.GetResponse())
                 {
-                    string html = reader.ReadToEnd();
-
-                    //Console.WriteLine(html);
-
-                    Regex regex = new Regex(GetDirectoryListingRegexForUrl(url));
-
-                    MatchCollection matches = regex.Matches(html);
-
-                    if (matches.Count > 0)
+                    using (StreamReader reader = new StreamReader(response.GetResponseStream()))
                     {
-                        foreach (Match match in matches)
+                        string html = reader.ReadToEnd();
+
+                        Regex regex = new Regex(GetDirectoryListingRegexForUrl(url));
+
+                        MatchCollection matches = regex.Matches(html);
+
+                        if (matches.Count > 0)
                         {
-                            if (match.Success)
+                            foreach (Match match in matches)
                             {
-                                //Console.WriteLine(match.Groups["name"]);
-                                var tt = match.Groups["name"];
-                                hyperlinkList.Add(match.Groups["name"].ToString());
+                                if (match.Success)
+                                {
+                                    string hyperlinkElement = match.Groups["name"].ToString();
+
+                                    if (hyperlinkElement.EndsWith(".jpg") || hyperlinkElement.EndsWith(".jpeg") || hyperlinkElement.EndsWith(".png") || hyperlinkElement.EndsWith(".tif") || hyperlinkElement.EndsWith(".tiff")) {
+
+                                        string sourceUrl = url + ((url.EndsWith("/")) ? string.Empty : "/") + hyperlinkElement;
+
+                                        Console.WriteLine(sourceUrl);
+
+                                        string destDir = url.Replace(http_prefix, "");
+
+                                        string destDirPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), destDir);
+
+                                        Directory.CreateDirectory(destDirPath);
+
+                                        string destFilePath = Path.Combine(destDirPath, hyperlinkElement);
+
+                                        destFilePath.Replace('/', Path.DirectorySeparatorChar);
+
+                                        Console.ForegroundColor = ConsoleColor.Yellow;
+                                        Console.WriteLine(destFilePath);
+                                        Console.ResetColor();
+
+                                        if (!File.Exists(destFilePath))
+                                        {
+                                            try
+                                            {
+                                                using (var client = new WebClient())
+                                                {
+                                                    client.DownloadFile(sourceUrl, destFilePath);
+                                                }
+                                            }
+                                            catch (Exception e)
+                                            {
+                                                Console.ForegroundColor = ConsoleColor.Red;
+                                                Console.WriteLine(e.Message);
+                                                Console.ResetColor();
+                                            }
+
+                                            Console.ForegroundColor = ConsoleColor.Green;
+                                            Console.WriteLine("downloaded");
+                                            Console.ResetColor();
+
+                                        }
+                                        else
+                                        {
+                                            Console.WriteLine("skipped");
+                                        }
+
+                                        counter++;
+
+                                        Console.WriteLine("found " + $"{counter} images");
+
+                                    }
+                                    else
+                                    {
+                                        GetContents(url + hyperlinkElement); // recursively call
+                                    }
+
+
+                                }
                             }
+                        }
+                        else
+                        {
+                            Console.WriteLine("Found no hyperlink references in retreived file.");
                         }
                     }
                 }
             }
+            catch (WebException e)
+            {
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine(e.Message);
+                Console.ResetColor();
+            }
 
-
-            return hyperlinkList;
+            Console.WriteLine("Finished");
         }
 
         private static string GetDirectoryListingRegexForUrl(string url)
         {
             return "<a href=\".*\">(?<name>.*)</a>";
         }
+
+        public static bool EndsWithAny(this string str, params string[] search)
+        {
+            return search.Any(s => str.EndsWith(s));
+        }
+
     }
 }
