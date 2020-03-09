@@ -12,18 +12,19 @@ namespace UrlRetreive
     internal static class Program
     {
         private static int counter;
+        private static int countDownloaded;
+        private static int countSkipped;
         private const string http_prefix = @"http://";
         private const string url = "http://people.csail.mit.edu/brussell/research/LabelMe/Images/05june05_static_street_boston/";
         private static string[] image_ext = { ".jpg", ".jpeg" };
         
 
-        // "http://people.csail.mit.edu/brussell/research/LabelMe/Images/05june05_static_street_boston/p1010737.jpg";
-        // http://people.csail.mit.edu/brussell/research/LabelMe/Images/05june05_static_street_boston/
-        // http://people.csail.mit.edu/brussell/research/LabelMe/Images/
         // https://stackoverflow.com/questions/124492/c-sharp-httpwebrequest-command-to-get-directory-listing
         // https://stackoverflow.com/questions/307688/how-to-download-a-file-from-a-url-in-c
+
+        // http://people.csail.mit.edu/brussell/research/LabelMe/Images/05june05_static_street_boston/
         // http://people.csail.mit.edu/brussell/research/LabelMe/Images/05june05_static_street_boston/p1010737.jpg
-        // http://www.ibiblio.org/pub
+
         // http://people.csail.mit.edu/brussell/research/LabelMe/Annotations/
         // http://people.csail.mit.edu/brussell/research/LabelMe/Images/
 
@@ -32,6 +33,8 @@ namespace UrlRetreive
             if (args != null && args.Length > 0)
             {
                 counter = 0;
+                countDownloaded = 0;
+                countSkipped = 0;
 
                 switch (args[0])
                 {
@@ -39,7 +42,18 @@ namespace UrlRetreive
                         PrintHelp();
                         break;
                     case "--get":
-                        if (args.Length == 2) GetContents(args[1]);
+                        if (args.Length == 2)
+                        {
+                            if (url.StartsWith(http_prefix) && ValidUrl(url))
+                            {
+                                GetContents(args[1]);
+                                Console.WriteLine("Finished");
+                            }
+                            else
+                            {
+                                Console.WriteLine("Argument is not a valid url");
+                            }
+                        }
                         else PrintHelp();
                         break;
                     default:
@@ -56,13 +70,9 @@ namespace UrlRetreive
 
         }
 
-        private static void CheckUrl(string url)
+        private static bool ValidUrl(string url)
         {
-            if (!url.StartsWith(http_prefix))
-            {
-                Console.WriteLine("URL is not valid");
-                return;
-            }
+            return true;
         }
 
         private static void PrintHelp()
@@ -134,14 +144,17 @@ namespace UrlRetreive
                                                 Console.ResetColor();
                                             }
 
+                                            countDownloaded++;
+
                                             Console.ForegroundColor = ConsoleColor.Green;
-                                            Console.WriteLine("downloaded");
+                                            Console.WriteLine("downloaded, count = " + countDownloaded);
                                             Console.ResetColor();
 
                                         }
                                         else
                                         {
-                                            Console.WriteLine("skipped");
+                                            countSkipped++;
+                                            Console.WriteLine("skipped, count = " + countSkipped);
                                         }
 
                                         counter++;
@@ -160,7 +173,9 @@ namespace UrlRetreive
                         }
                         else
                         {
+                            Console.ForegroundColor = ConsoleColor.Red;
                             Console.WriteLine("Found no hyperlink references in retreived file.");
+                            Console.ResetColor();
                         }
                     }
                 }
@@ -171,8 +186,7 @@ namespace UrlRetreive
                 Console.WriteLine(e.Message);
                 Console.ResetColor();
             }
-
-            Console.WriteLine("Finished");
+            
         }
 
         private static string GetDirectoryListingRegexForUrl(string url)
