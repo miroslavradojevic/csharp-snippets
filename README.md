@@ -1,2 +1,4 @@
-# csharp-snippets
-C#/.NET snippets and smaller programs for different purposes
+## C#/.NET snippets
+
+### Exam70-483
+Exercises for the [Exam Ref 70-483](https://docs.microsoft.com/en-us/learn/certifications/exams/70-483)
