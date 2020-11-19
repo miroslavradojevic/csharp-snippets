@@ -1,4 +1,4 @@
-﻿// 
+﻿// Implement multithreading and asynchronous processing
 using System;
 using System.Threading;
 
