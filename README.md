@@ -1,4 +1,4 @@
-# csharp-snippets
+# C#/.NET snippets
 C#/.NET snippets and smaller programs for different purposes
 
 ## Exam70-483
